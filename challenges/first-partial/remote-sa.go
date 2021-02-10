@@ -75,8 +75,6 @@ func getPerimeter(points []Point) float64 {
 		perimeter += getDistance(p1, p2)
 	}
 
-	perimeter = math.Round(perimeter * 10) / 10
-
 	return perimeter
 }
 
