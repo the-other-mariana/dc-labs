@@ -62,6 +62,10 @@ func generatePoints(s string) ([]Point, error) {
 
 func getOrientation(p, q, r Point) uint8{
 	value := ((q.Y - p.Y) * (r.X - q.X)) - ((q.X - p.X) * (r.Y - q.Y)) 
+	pq := p.toVector(q)
+	qr := q.toVector(r)
+	value2 := pq.cross(qr)
+	fmt.Printf("link %v me %v\n", value, value2)
 	if value > 0 {
 		return 1
 	}
@@ -84,6 +88,7 @@ func verifyComplexPoly(points []Point) bool {
 		edges = append(edges, temp)
 	}
 
+	// checking if any pair of non-contiguous line segment (edge) intersects
 	for i := 0; i < len(edges); i++ {
 		next := (i + 2) % len(edges)
 		curr_edge := edges[i]
@@ -95,7 +100,7 @@ func verifyComplexPoly(points []Point) bool {
 				break
 			}
 			//fmt.Printf("c: %v n: %v\n", curr_edge, edges[j])
-
+			fmt.Println("-------------")
 			o1 := getOrientation(curr_edge.a, curr_edge.b, edges[j].a) 
 			o2 := getOrientation(curr_edge.a, curr_edge.b, edges[j].b) 
 			o3 := getOrientation(edges[j].a, edges[j].b, curr_edge.a) 
