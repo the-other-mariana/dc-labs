@@ -60,12 +60,35 @@ func generatePoints(s string) ([]Point, error) {
 	return points, nil
 }
 
+// Max returns the larger of x or y.
+func max(x, y float64) float64 {
+    if x < y {
+        return y
+    }
+    return x
+}
+
+// Min returns the smaller of x or y.
+func min(x, y float64) float64 {
+    if x > y {
+        return y
+    }
+    return x
+}
+
+func insideBounds(p, q, r Point) bool {
+	if (q.X <= max(p.X, r.X)) && (q.X >= min(p.X, r.X)) && (q.Y <= max(p.Y, r.Y)) && (q.Y >= min(p.Y, r.Y)){
+		return true
+	}
+    return false
+}
+
 func getOrientation(p, q, r Point) uint8{
-	value := ((q.Y - p.Y) * (r.X - q.X)) - ((q.X - p.X) * (r.Y - q.Y)) 
+	//value2 := ((q.Y - p.Y) * (r.X - q.X)) - ((q.X - p.X) * (r.Y - q.Y)) 
 	pq := p.toVector(q)
 	qr := q.toVector(r)
-	value2 := pq.cross(qr)
-	fmt.Printf("link %v me %v\n", value, value2)
+	value := pq.cross(qr)
+	//fmt.Printf("link %v me %v\n", value2, value)
 	if value > 0 {
 		return 1
 	}
@@ -99,16 +122,25 @@ func verifyComplexPoly(points []Point) bool {
 			if times == len(edges) - 2 {
 				break
 			}
-			//fmt.Printf("c: %v n: %v\n", curr_edge, edges[j])
-			fmt.Println("-------------")
 			o1 := getOrientation(curr_edge.a, curr_edge.b, edges[j].a) 
 			o2 := getOrientation(curr_edge.a, curr_edge.b, edges[j].b) 
 			o3 := getOrientation(edges[j].a, edges[j].b, curr_edge.a) 
 			o4 := getOrientation(edges[j].a, edges[j].b, curr_edge.b) 
 		
+			// general case
 			if (o1 != o2) && (o3 != o4) {
 				return true
 			}
+
+			// special cases
+			// p1 q1 p2 are collinear and p2 lies on segment p1q1 
+			if ((o1 == 0) && insideBounds(curr_edge.a, edges[j].a, curr_edge.b)) { return true }
+			// p1 q1 q2 are collinear and q2 lies on segment p1q1 
+			if ((o2 == 0) && insideBounds(curr_edge.a, edges[j].b, curr_edge.b)) { return true }
+			// p2 q2 p1 are collinear and p1 lies on segment p2q2 
+			if ((o3 == 0) && insideBounds(edges[j].a, curr_edge.a, edges[j].b)) { return true }
+			// p2 q2 q1 are collinear and q1 lies on segment p2q2 
+			if ((o4 == 0) && insideBounds(edges[j].a, curr_edge.b, edges[j].b)) { return true } 
 
 			j = (j + 1) % len(edges)
 			times++
