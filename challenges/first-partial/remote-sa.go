@@ -13,6 +13,22 @@ type Point struct {
 	X, Y float64
 }
 
+type Vector struct {
+	X, Y float64
+}
+
+type Edge struct {
+	a, b Point
+}
+
+func (p1 Point) toVector(p2 Point) Vector{
+	return Vector{(p2.X - p1.X), (p2.Y - p1.Y)}
+}
+
+func (a Vector) cross(b Vector) float64 {
+	return ((a.X * b.Y) - (a.Y * b.X))
+}
+
 func main() {
 	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
@@ -42,6 +58,61 @@ func generatePoints(s string) ([]Point, error) {
 		}
 	}
 	return points, nil
+}
+
+func getOrientation(p, q, r Point) uint8{
+	value := ((q.Y - p.Y) * (r.X - q.X)) - ((q.X - p.X) * (r.Y - q.Y)) 
+	if value > 0 {
+		return 1
+	}
+	if value < 0 {
+		return 2
+	}
+	return 0
+}
+
+func verifyComplexPoly(points []Point) bool {
+	// a complex polygon is one where non-consecutive sides collide 
+
+	//var eps float64 = 0.00001
+	var edges []Edge
+
+	for i := 0; i < len(points); i++ {
+		//p1p2 := points[i].toVector(points[(i + 1) % len(points)])
+
+		temp := Edge{points[i], points[(i + 1) % len(points)]}
+		edges = append(edges, temp)
+	}
+
+	for i := 0; i < len(edges); i++ {
+		next := (i + 2) % len(edges)
+		curr_edge := edges[i]
+		
+		j := next
+		times := 0
+		for times < len(edges) - 3 {
+			if times == len(edges) - 2 {
+				break
+			}
+			//fmt.Printf("c: %v n: %v\n", curr_edge, edges[j])
+
+			o1 := getOrientation(curr_edge.a, curr_edge.b, edges[j].a) 
+			o2 := getOrientation(curr_edge.a, curr_edge.b, edges[j].b) 
+			o3 := getOrientation(edges[j].a, edges[j].b, curr_edge.a) 
+			o4 := getOrientation(edges[j].a, edges[j].b, curr_edge.b) 
+		
+			if (o1 != o2) && (o3 != o4) {
+				return true
+			}
+
+			j = (j + 1) % len(edges)
+			times++
+			
+		}
+		
+	}
+
+	return false
 }
 
 func getDistance(p1, p2 Point) float64 {
@@ -102,7 +173,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received vertices array: %v", vertices)
 
 	// Response construction
-	response := fmt.Sprintf("Welcome Friend to the Remote Shapes Analyzer\n")
+	response := fmt.Sprintf("Welcome to the Remote Shapes Analyzer\n")
+	response += fmt.Sprintf(" - Complex			: %v\n", verifyComplexPoly(vertices))
 	response += fmt.Sprintf(" - Your figure has : [%v] vertices\n", len(vertices))
 	response += fmt.Sprintf(" - Vertices        : %v\n", vertices)
 	response += fmt.Sprintf(" - Perimeter       : %v\n", perimeter)
