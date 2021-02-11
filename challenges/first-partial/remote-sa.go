@@ -9,24 +9,24 @@ import (
 	"math"
 )
 
-type Point struct {
-	X, Y float64
-}
-
 type Vector struct {
 	X, Y float64
 }
 
-type Edge struct {
-	a, b Point
+func (a Vector) cross(b Vector) float64 {
+	return ((a.X * b.Y) - (a.Y * b.X))
+}
+
+type Point struct {
+	X, Y float64
 }
 
 func (p1 Point) toVector(p2 Point) Vector{
 	return Vector{(p2.X - p1.X), (p2.Y - p1.Y)}
 }
 
-func (a Vector) cross(b Vector) float64 {
-	return ((a.X * b.Y) - (a.Y * b.X))
+type Edge struct {
+	a, b Point
 }
 
 func main() {
@@ -60,7 +60,7 @@ func generatePoints(s string) ([]Point, error) {
 	return points, nil
 }
 
-// Max returns the larger of x or y.
+// max returns the larger of x or y.
 func max(x, y float64) float64 {
     if x < y {
         return y
@@ -68,7 +68,7 @@ func max(x, y float64) float64 {
     return x
 }
 
-// Min returns the smaller of x or y.
+// min returns the smaller of x or y.
 func min(x, y float64) float64 {
     if x > y {
         return y
@@ -76,6 +76,7 @@ func min(x, y float64) float64 {
     return x
 }
 
+// insideBounds determines if q is on the pr segment boundaries
 func insideBounds(p, q, r Point) bool {
 	if (q.X <= max(p.X, r.X)) && (q.X >= min(p.X, r.X)) && (q.Y <= max(p.Y, r.Y)) && (q.Y >= min(p.Y, r.Y)){
 		return true
@@ -88,16 +89,20 @@ func getOrientation(p, q, r Point) uint8{
 	pq := p.toVector(q)
 	qr := q.toVector(r)
 	value := pq.cross(qr)
-	//fmt.Printf("link %v me %v\n", value2, value)
+	
+	// ccw and cw orientations
 	if value > 0 {
 		return 1
 	}
 	if value < 0 {
 		return 2
 	}
+
+	// collinear case: cross product is zero (triangle area is zero)
 	return 0
 }
 
+// sample test: curl http://localhost:8000\?vertices=\(1,1\),\(10,1\),\(1,2\),\(10,2\)
 func verifyComplexPoly(points []Point) bool {
 	// a complex polygon is one where non-consecutive sides collide 
 
@@ -105,8 +110,6 @@ func verifyComplexPoly(points []Point) bool {
 	var edges []Edge
 
 	for i := 0; i < len(points); i++ {
-		//p1p2 := points[i].toVector(points[(i + 1) % len(points)])
-
 		temp := Edge{points[i], points[(i + 1) % len(points)]}
 		edges = append(edges, temp)
 	}
@@ -211,12 +214,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Response construction
 	response := fmt.Sprintf("Welcome to the Remote Shapes Analyzer\n")
-	response += fmt.Sprintf(" - Complex			: %v\n", verifyComplexPoly(vertices))
 	response += fmt.Sprintf(" - Your figure has : [%v] vertices\n", len(vertices))
-	response += fmt.Sprintf(" - Vertices        : %v\n", vertices)
-	response += fmt.Sprintf(" - Perimeter       : %v\n", perimeter)
-	response += fmt.Sprintf(" - Area            : %v\n", area)
-
+	if verifyComplexPoly(vertices) {
+		response += fmt.Sprintf("ERROR - Your shape has self-intersections, its area cannot be computed with this program.\n")
+	} else if len(vertices) < 3 {
+		response += fmt.Sprintf("ERROR - Your shape is not compliying with the minimum number of vertices.\n")
+	} else {
+		response += fmt.Sprintf(" - Vertices        : %v\n", vertices)
+		response += fmt.Sprintf(" - Perimeter       : %v\n", perimeter)
+		response += fmt.Sprintf(" - Area            : %v\n", area)
+	}
+	
 	// Send response to client
 	fmt.Fprintf(w, response)
 }
