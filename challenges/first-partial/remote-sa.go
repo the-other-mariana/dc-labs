@@ -121,9 +121,7 @@ func verifyComplexPoly(points []Point) bool {
 		j := next
 		times := 0
 		for times < len(edges) - 3 {
-			if times == len(edges) - 2 {
-				break
-			}
+			//fmt.Printf("c: %v n: %v \n", curr_edge, edges[j])
 			o1 := getOrientation(curr_edge.a, curr_edge.b, edges[j].a) 
 			o2 := getOrientation(curr_edge.a, curr_edge.b, edges[j].b) 
 			o3 := getOrientation(edges[j].a, edges[j].b, curr_edge.a) 
@@ -143,7 +141,7 @@ func verifyComplexPoly(points []Point) bool {
 			if ((o3 == 0) && insideBounds(edges[j].a, curr_edge.a, edges[j].b)) { return true }
 			// p2 q2 q1 are collinear and q1 lies on segment p2q2 
 			if ((o4 == 0) && insideBounds(edges[j].a, curr_edge.b, edges[j].b)) { return true } 
-
+			
 			j = (j + 1) % len(edges)
 			times++
 		}
