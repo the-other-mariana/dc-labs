@@ -163,7 +163,6 @@ func getDistance(p1, p2 Point) float64 {
 func getArea(points []Point) float64 {
 	// Your code goes here
 	var area float64 = 0.0
-	var decimals float64 = 1.0
 
 	// shoelace formula
 	for i := 0; i < len(points); i++ {
@@ -172,7 +171,7 @@ func getArea(points []Point) float64 {
 	}
 
 	a := math.Abs(area) / 2.0
-	a =  math.Round(a * math.Pow(10, float64(decimals))) / math.Pow(10, float64(decimals))
+	//a =  math.Round(a * 10) / 10
 	return a
 }
 
@@ -181,14 +180,13 @@ func getPerimeter(points []Point) float64 {
 	// Your code goes here
 
 	var perimeter float64 = 0.0
-	var decimals float64 = 1.0
 
 	for i := 0; i < len(points); i++ {
 		p1 := points[i]
 		p2 := points[(i + 1) % len(points)]
 		perimeter += getDistance(p1, p2)
 	}
-	perimeter = math.Round(perimeter * math.Pow(10, float64(decimals))) / math.Pow(10, float64(decimals))
+	//perimeter = math.Round(perimeter * 10) / 10
 	return perimeter
 }
 
