@@ -60,7 +60,7 @@ func generatePoints(s string) ([]Point, error) {
 	return points, nil
 }
 
-// max returns the larger of x or y.
+// max returns the larger of x or y
 func max(x, y float64) float64 {
     if x < y {
         return y
@@ -68,7 +68,7 @@ func max(x, y float64) float64 {
     return x
 }
 
-// min returns the smaller of x or y.
+// min returns the smaller of x or y
 func min(x, y float64) float64 {
     if x > y {
         return y
@@ -106,7 +106,6 @@ func getOrientation(p, q, r Point) uint8{
 func verifyComplexPoly(points []Point) bool {
 	// a complex polygon is one where non-consecutive sides collide 
 
-	//var eps float64 = 0.00001
 	var edges []Edge
 
 	for i := 0; i < len(points); i++ {
@@ -147,9 +146,7 @@ func verifyComplexPoly(points []Point) bool {
 
 			j = (j + 1) % len(edges)
 			times++
-			
 		}
-		
 	}
 
 	return false
