@@ -185,6 +185,21 @@ func getPerimeter(points []Point) float64 {
 	return perimeter
 }
 
+func getPointArrayString(points []Point) string {
+	var strValue string = ""
+	for i := 0; i < len(points); i++ {
+		vert := "(" + fmt.Sprintf("%g", points[i].X) + "," + fmt.Sprintf("%g", points[i].Y)
+		if i == len(points) - 1 {
+			vert += ")"
+		} else {
+			vert += ") "
+		}
+		
+		strValue += vert
+	}
+	return strValue
+}
+
 // handler handles the web request and reponds it
 func handler(w http.ResponseWriter, r *http.Request) {
 
@@ -210,15 +225,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Response construction
 	response := fmt.Sprintf("Welcome to the Remote Shapes Analyzer\n")
-	response += fmt.Sprintf(" - Your figure has : [%v] vertices\n", len(vertices))
+	response += fmt.Sprintf(" - Your figure has      : [%v] vertices\n", len(vertices))
 	if verifyComplexPoly(vertices) {
 		response += fmt.Sprintf("ERROR - Your shape has self-intersections, its area cannot be computed with this program.\n")
 	} else if len(vertices) < 3 {
 		response += fmt.Sprintf("ERROR - Your shape is not compliying with the minimum number of vertices.\n")
 	} else {
-		response += fmt.Sprintf(" - Vertices        : %v\n", vertices)
-		response += fmt.Sprintf(" - Perimeter       : %v\n", perimeter)
-		response += fmt.Sprintf(" - Area            : %v\n", area)
+		response += fmt.Sprintf(" - Vertices             : %v\n", getPointArrayString(vertices))
+		response += fmt.Sprintf(" - Calculated Perimeter : %v\n", perimeter)
+		response += fmt.Sprintf(" - Calculated Area      : %v\n", area)
 	}
 	
 	// Send response to client
