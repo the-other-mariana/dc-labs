@@ -9,22 +9,26 @@ import (
 	"math"
 )
 
+// Vector struct groups two values x and y for a 2D Vector
 type Vector struct {
 	X, Y float64
 }
 
+// cross method returns the signed magnitude of a 2D vector cross product
 func (a Vector) cross(b Vector) float64 {
 	return ((a.X * b.Y) - (a.Y * b.X))
 }
 
+// Point struct is a 2D point object
 type Point struct {
 	X, Y float64
 }
-
+// toVector method returns vector from p1 to p2
 func (p1 Point) toVector(p2 Point) Vector{
 	return Vector{(p2.X - p1.X), (p2.Y - p1.Y)}
 }
 
+// Edge struct is an object with two points
 type Edge struct {
 	a, b Point
 }
@@ -76,7 +80,7 @@ func min(x, y float64) float64 {
     return x
 }
 
-// insideBounds determines if q is on the pr segment boundaries
+// insideBounds determines if point q is on the pr segment boundaries
 func insideBounds(p, q, r Point) bool {
 	if (q.X <= max(p.X, r.X)) && (q.X >= min(p.X, r.X)) && (q.Y <= max(p.Y, r.Y)) && (q.Y >= min(p.Y, r.Y)){
 		return true
@@ -84,8 +88,8 @@ func insideBounds(p, q, r Point) bool {
     return false
 }
 
+// getOrientation gets the cross product (orientation) of 3 points according to its sign
 func getOrientation(p, q, r Point) uint8{
-	//value2 := ((q.Y - p.Y) * (r.X - q.X)) - ((q.X - p.X) * (r.Y - q.Y)) 
 	pq := p.toVector(q)
 	qr := q.toVector(r)
 	value := pq.cross(qr)
@@ -102,6 +106,7 @@ func getOrientation(p, q, r Point) uint8{
 	return 0
 }
 
+// verifyComplexPoly returns if a polygon is complex (has self collisions) or not
 // sample test: curl http://localhost:8000\?vertices=\(1,1\),\(10,1\),\(1,2\),\(10,2\)
 func verifyComplexPoly(points []Point) bool {
 	// a complex polygon is one where non-consecutive sides collide 
@@ -150,6 +155,7 @@ func verifyComplexPoly(points []Point) bool {
 	return false
 }
 
+// getDistance returns the Euclidean distance between two points
 func getDistance(p1, p2 Point) float64 {
 	return math.Sqrt(math.Pow((p2.X - p1.X), 2) + math.Pow((p2.Y - p1.Y), 2))
 }
@@ -185,6 +191,7 @@ func getPerimeter(points []Point) float64 {
 	return perimeter
 }
 
+// getPointArrayString receives an array of points, returns a pretty string with the points in parentheses
 func getPointArrayString(points []Point) string {
 	var strValue string = ""
 	for i := 0; i < len(points); i++ {
@@ -226,6 +233,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// Response construction
 	response := fmt.Sprintf("Welcome to the Remote Shapes Analyzer\n")
 	response += fmt.Sprintf(" - Your figure has      : [%v] vertices\n", len(vertices))
+
+	// Error and responses handling
 	if verifyComplexPoly(vertices) {
 		response += fmt.Sprintf("ERROR - Your shape has self-intersections, its area cannot be computed with this program.\n")
 	} else if len(vertices) < 3 {
