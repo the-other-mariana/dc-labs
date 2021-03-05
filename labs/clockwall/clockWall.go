@@ -15,7 +15,7 @@ func mustCopy(dst io.Writer, src io.Reader) {
 }
 
 func main() {
-	conn, err := net.Dial("tcp", "localhost:9090")
+	conn, err := net.Dial("tcp", "localhost:8020")
 	if err != nil {
 		log.Fatal(err)
 	}
