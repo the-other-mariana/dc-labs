@@ -34,7 +34,8 @@ func handleConn(c net.Conn, location string) {
 	go getResponse(sChan, location)
 
 	for t := range sChan {
-		_, err := io.WriteString(c, t)
+		response := fmt.Sprintf("%v" +" \t: " + "%v", location, t)
+		_, err := io.WriteString(c, response)
 		if err != nil {
 			return 
 		}
