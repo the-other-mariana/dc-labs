@@ -3,7 +3,7 @@ package main
 
 import (
 	"fmt"
-	//"io"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -12,6 +12,7 @@ import (
 
 )
 
+// function that transforms current time into another timezone time
 func getLocalTime(current time.Time, location string) time.Time {
 	loc, error := time.LoadLocation(location)
 	if error != nil { 
@@ -20,6 +21,7 @@ func getLocalTime(current time.Time, location string) time.Time {
 	return current.In(loc)
 }
 
+// function that waits 1 sec and sends a local time to the unbuffered channel
 func getResponse(sChan chan string, location string) {
 	for {
 		timeResponse := getLocalTime(time.Now(), location).Format("15:04:05\n")
@@ -28,6 +30,7 @@ func getResponse(sChan chan string, location string) {
 	}
 }
 
+// function that calls a goroutine to fill the response channel
 func handleConn(c net.Conn, location string) {
 	defer c.Close()
 
@@ -36,20 +39,19 @@ func handleConn(c net.Conn, location string) {
 
 	for t := range sChan {
 		response := fmt.Sprintf("%v" +" \t: " + "%v", location, t)
-		//_, err := io.WriteString(c, response)
-		var r []byte = []byte(response)
-		_, err := c.Write(r)
+		_, err := io.WriteString(c, response)
 		if err != nil {
 			return 
 		}
 	}
 }
 
+// main goroutine that listens to an input port to serve it
 func main() {
 	timezone := os.Getenv("TZ")
 	fmt.Printf("Timezone: %v\n", timezone)
 
-	var port = flag.Int("port", 9000, "Port number.")
+	var port = flag.Int("port", 8030, "Port number.")
 	flag.Parse()
 
 	socket := fmt.Sprintf("localhost:%v", *port)

@@ -6,25 +6,27 @@ import (
 	"log"
 	"net"
 	"os"
-	//"fmt"
 	"strings"
-	//"time"
+	"strconv"
 )
 
+// function that connects to a clock server and gets the time
 func dialServer(socket string, c chan int) {
 	conn, err := net.Dial("tcp", socket)
+	port, err := strconv.Atoi((strings.Split(socket, ":"))[1])
+
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	out := os.Stdout
-	io.Copy(out, conn)
-	c <- 1 // sends 1 to buffered channel that can receive up to 3 values before blocking
+	io.Copy(os.Stdout, conn)
+	c <- port
+	// sends 1 to buffered channel that can receive up to 3 values before blocking
 }
 
+// main goroutine
 func main() {
-	//printerChan := make(chan LocalTime)
-	c := make(chan int, 3)
+	
 	args := os.Args[1:]
 	var sockets []string
 
@@ -33,10 +35,16 @@ func main() {
 		sockets = append(sockets, socket)
 	}
 
+	// buffered channel with size as big as number of ports
+	c := make(chan int, len(sockets)) 
+
 	for _,socket := range sockets {
+		// calling a separate goroutine for connecting to each of the sockets
 		go dialServer(socket, c)
 	}
-	<- c //receiver, this line waits until c is full to proceed
+
+	//receiver, this line makes the program wait until c has a value to proceed
+	<- c 
 	close(c)
 	
 }
