@@ -34,6 +34,7 @@ func getResponse(sChan chan string, location string) {
 func handleConn(c net.Conn, location string) {
 	defer c.Close()
 
+	// UNBUFFERED CHANNEL FOR RESPONSE GATHERING
 	sChan := make(chan string)
 	go getResponse(sChan, location)
 
@@ -49,7 +50,6 @@ func handleConn(c net.Conn, location string) {
 // main goroutine that listens to an input port to serve it
 func main() {
 	timezone := os.Getenv("TZ")
-	fmt.Printf("Timezone: %v\n", timezone)
 
 	var port = flag.Int("port", 8030, "Port number.")
 	flag.Parse()
@@ -59,6 +59,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("=== Started clock server [%v] at port [%v] ====\n", timezone, *port)
 	for {
 		conn, err := listener.Accept()
 		if err != nil {

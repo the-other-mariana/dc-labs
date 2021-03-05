@@ -18,8 +18,14 @@ func dialServer(socket string, c chan int) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer conn.Close()
-	io.Copy(os.Stdout, conn)
+	_, err = io.Copy(os.Stdout, conn)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	c <- port
 	// sends 1 to buffered channel that can receive up to 3 values before blocking
 }
@@ -35,7 +41,7 @@ func main() {
 		sockets = append(sockets, socket)
 	}
 
-	// buffered channel with size as big as number of ports
+	// BUFFERED CHANNEL WITH CAPACITY AS BIG AS NUMBER OF PORTS
 	c := make(chan int, len(sockets)) 
 
 	for _,socket := range sockets {
