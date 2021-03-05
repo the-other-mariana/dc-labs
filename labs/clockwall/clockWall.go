@@ -13,15 +13,17 @@ import (
 // function that connects to a clock server and gets the time
 func dialServer(socket string, c chan int) {
 	conn, err := net.Dial("tcp", socket)
-	port, err := strconv.Atoi((strings.Split(socket, ":"))[1])
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	port, err := strconv.Atoi((strings.Split(socket, ":"))[1])
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer conn.Close()
 	_, err = io.Copy(os.Stdout, conn)
-
 	if err != nil {
 		log.Fatal(err)
 	}
