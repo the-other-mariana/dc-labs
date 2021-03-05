@@ -43,7 +43,7 @@ func main() {
 		sockets = append(sockets, socket)
 	}
 
-	// BUFFERED CHANNEL WITH CAPACITY AS BIG AS NUMBER OF PORTS
+	// BUFFERED CHANNEL WITH CAPACITY AS LARGE AS NUMBER OF PORTS
 	c := make(chan int, len(sockets)) 
 
 	for _,socket := range sockets {
