@@ -8,10 +8,18 @@ import (
 	"time"
 )
 
-func handleConn(c net.Conn) {
-	defer c.Close()
+func getResponse(sChan chan string) {
 	for {
-		_, err := io.WriteString(c, time.Now().Format("15:04:05\n"))
+		timeResponse := time.Now().Format("15:04:05\n")
+		sChan <- timeResponse
+	}
+}
+
+func handleConn(c net.Conn, sChan chan string) {
+	defer c.Close()
+	go getResponse(sChan)
+	for t := range sChan {
+		_, err := io.WriteString(c, t)
 		if err != nil {
 			return // e.g., client disconnected
 		}
@@ -20,6 +28,7 @@ func handleConn(c net.Conn) {
 }
 
 func main() {
+	sChan := make(chan string)
 	listener, err := net.Listen("tcp", "localhost:9090")
 	if err != nil {
 		log.Fatal(err)
@@ -27,9 +36,9 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Print(err) // e.g., connection aborted
+			log.Print(err) 
 			continue
 		}
-		go handleConn(conn) // handle connections concurrently
+		go handleConn(conn, sChan) 
 	}
 }
