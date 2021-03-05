@@ -6,21 +6,10 @@ import (
 	"log"
 	"net"
 	"os"
-	"fmt"
+	//"fmt"
 	"strings"
 	//"time"
 )
-/*
-type LocalTime struct {
-    location string
-    currentTime string
-}
-
-func mustCopy(dst io.Writer, src io.Reader) {
-	if _, err := io.Copy(dst, src); err != nil {
-		log.Fatal(err)
-	}
-}*/
 
 func dialServer(socket string, c chan int) {
 	conn, err := net.Dial("tcp", socket)
@@ -29,10 +18,6 @@ func dialServer(socket string, c chan int) {
 	}
 	defer conn.Close()
 	out := os.Stdout
-	if cap(c) == 1 {
-		title := []byte("-----------\n")
-		out.Write(title[:])
-	}
 	io.Copy(out, conn)
 	c <- 1 // sends 1 to buffered channel that can receive up to 3 values before blocking
 }
@@ -48,11 +33,10 @@ func main() {
 		sockets = append(sockets, socket)
 	}
 
-	
 	for _,socket := range sockets {
 		go dialServer(socket, c)
 	}
-	printer := <- c // receive
-	fmt.Println(printer)
+	<- c //receiver, this line waits until c is full to proceed
+	close(c)
 	
 }

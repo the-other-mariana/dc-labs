@@ -3,12 +3,13 @@ package main
 
 import (
 	"fmt"
-	"io"
+	//"io"
 	"log"
 	"net"
 	"time"
 	"flag"
 	"os"
+
 )
 
 func getLocalTime(current time.Time, location string) time.Time {
@@ -35,7 +36,9 @@ func handleConn(c net.Conn, location string) {
 
 	for t := range sChan {
 		response := fmt.Sprintf("%v" +" \t: " + "%v", location, t)
-		_, err := io.WriteString(c, response)
+		//_, err := io.WriteString(c, response)
+		var r []byte = []byte(response)
+		_, err := c.Write(r)
 		if err != nil {
 			return 
 		}
