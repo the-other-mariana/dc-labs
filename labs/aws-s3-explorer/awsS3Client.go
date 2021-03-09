@@ -25,7 +25,6 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	// Print the first 5 lines of the response body.
 	scanner := bufio.NewScanner(resp.Body)
 	for i := 0; scanner.Scan(); i++ {
 		fmt.Println(scanner.Text())

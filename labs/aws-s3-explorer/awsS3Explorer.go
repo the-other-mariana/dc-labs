@@ -8,7 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	//"strings"
+	"strings"
 	"encoding/xml"
 )
 
@@ -23,6 +23,9 @@ type XMLResult struct {
 }
 
 func responseHandler(res http.ResponseWriter, req *http.Request) {
+
+	extensions := make(map[string]int)
+	directories := make(map[string]bool)
 
 	bucketName := req.FormValue("bucket")
 	url := fmt.Sprintf("https://%v.s3.amazonaws.com", bucketName)
@@ -44,14 +47,28 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 	strRes := ""
 	strRes += fmt.Sprintf("Bucket name: %v\n", xmlResult.Name)
 	
-	for index,c := range xmlResult.Contents {
-		strRes += fmt.Sprintf("Content %v: Key: %v\n", index, c.Key)
+	for _,c := range xmlResult.Contents {
+		objKey := c.Key
+		if strings.HasSuffix(objKey, "/"){
+			if !directories[objKey] {
+				directories[objKey] = true
+			}
+		}
+		if strings.Contains(objKey, ".") {
+			ext := strings.Split(objKey, ".")
+			extensions[ext[len(ext) - 1]] += 1
+		}
+		//strRes += fmt.Sprintf("Content %v: Key: %v\n", index, c.Key)
+	}
+
+	strRes += fmt.Sprintf("Directories: %v\n", len(directories))
+	strRes += fmt.Sprintf("Extensions: %v\n", len(extensions))
+	for key, value := range extensions {
+		strRes += fmt.Sprintf("%v: %v\n", key, value)
 	}
 
 	io.WriteString(res, "RESPONSE")
 	io.WriteString(res, "\nURL: " + url)
-    io.WriteString(res, "\nbucket: "+req.FormValue("bucket"))
-    io.WriteString(res, "\ndir: "+req.FormValue("dir"))
 	io.WriteString(res, "\n" + strRes)
 }
 func main() {
