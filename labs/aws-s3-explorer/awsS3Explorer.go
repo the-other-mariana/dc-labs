@@ -8,9 +8,19 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"strings"
-	//"encoding/xml"
+	//"strings"
+	"encoding/xml"
 )
+
+type Content struct {
+	Key string `xml:"Key"`
+}
+
+type XMLResult struct {
+	XMLName  xml.Name  `xml:"ListBucketResult"`
+	Name  string  `xml:"Name"`
+	Contents []Content `xml:"Contents"`
+}
 
 func responseHandler(res http.ResponseWriter, req *http.Request) {
 
@@ -26,12 +36,23 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic("Error at data reading: " + err.Error())
 	}
+	defer resp.Body.Close()
+
+	var xmlResult XMLResult
+	xml.Unmarshal(data, &xmlResult)
+
+	strRes := ""
+	strRes += fmt.Sprintf("Bucket name: %v\n", xmlResult.Name)
+	
+	for index,c := range xmlResult.Contents {
+		strRes += fmt.Sprintf("Content %v: Key: %v\n", index, c.Key)
+	}
 
 	io.WriteString(res, "RESPONSE")
 	io.WriteString(res, "\nURL: " + url)
     io.WriteString(res, "\nbucket: "+req.FormValue("bucket"))
     io.WriteString(res, "\ndir: "+req.FormValue("dir"))
-	io.WriteString(res, "\n" + strings.Split(string(data), "\n")[0])
+	io.WriteString(res, "\n" + strRes)
 }
 func main() {
 

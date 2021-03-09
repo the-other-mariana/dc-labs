@@ -13,9 +13,10 @@ func main() {
 	var bucketName = flag.String("bucket", "none", "S3 bucket name.")
 	var directory = flag.String("directory", "", "Directory name.")
 	flag.Parse()
+	/*
 	fmt.Printf("Proxy: %v\n", *proxy)
 	fmt.Printf("Bucket Name: %v\n", *bucketName)
-	fmt.Printf("Directory: %v\n", *directory)
+	fmt.Printf("Directory: %v\n", *directory)*/
 
 	request := fmt.Sprintf("http://%v/example?bucket=%v&dir=%v", *proxy, *bucketName, *directory)
 	resp, err := http.Get(request)
