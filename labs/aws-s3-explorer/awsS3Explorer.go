@@ -26,9 +26,11 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 
 	extensions := make(map[string]int)
 	directories := make(map[string]bool)
+	objects := make(map[string]bool)
 
 	bucketName := req.FormValue("bucket")
 	url := fmt.Sprintf("https://%v.s3.amazonaws.com", bucketName)
+
 	resp, err := http.Get(url)
 	if err != nil {
 		panic("Error at S3 connection: " + err.Error())
@@ -44,23 +46,40 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 	var xmlResult XMLResult
 	xml.Unmarshal(data, &xmlResult)
 
-	strRes := ""
-	strRes += fmt.Sprintf("Bucket name: %v\n", xmlResult.Name)
-	
 	for _,c := range xmlResult.Contents {
+
 		objKey := c.Key
+
 		if strings.HasSuffix(objKey, "/"){
 			if !directories[objKey] {
 				directories[objKey] = true
 			}
 		}
+
 		if strings.Contains(objKey, ".") {
+
+			_, exists := objects[objKey]
+
+			if !exists {
+				objects[objKey] = true
+			}
+
 			ext := strings.Split(objKey, ".")
-			extensions[ext[len(ext) - 1]] += 1
+			_, exists = extensions[ext[len(ext) - 1]];
+
+			if !exists {
+				extensions[ext[len(ext) - 1]] = 1
+			}
+			if exists {
+				extensions[ext[len(ext) - 1]] += 1
+			}
+			
 		}
-		//strRes += fmt.Sprintf("Content %v: Key: %v\n", index, c.Key)
 	}
 
+	strRes := ""
+	strRes += fmt.Sprintf("Bucket name: %v\n", xmlResult.Name)
+	strRes += fmt.Sprintf("Objects: %v\n", len(objects))
 	strRes += fmt.Sprintf("Directories: %v\n", len(directories))
 	strRes += fmt.Sprintf("Extensions: %v\n", len(extensions))
 	for key, value := range extensions {

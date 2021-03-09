@@ -1,3 +1,4 @@
+// client that requests to server (via proxy param) a bucket and directory (optional)
 package main
 
 import (
