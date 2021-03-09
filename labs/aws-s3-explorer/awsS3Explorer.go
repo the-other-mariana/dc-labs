@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	//"time"
-	"io"
+	//"io"
 	"io/ioutil"
 	"log"
 	"strings"
 	"encoding/xml"
+	"encoding/json"
 )
 
 type Content struct {
@@ -20,6 +21,13 @@ type XMLResult struct {
 	XMLName  xml.Name  `xml:"ListBucketResult"`
 	Name  string  `xml:"Name"`
 	Contents []Content `xml:"Contents"`
+}
+
+type BucketDetails struct {
+	BucketName string
+	ObjectsCount int
+	DirectoriesCount int
+	Extensions map[string]int
 }
 
 func responseHandler(res http.ResponseWriter, req *http.Request) {
@@ -77,24 +85,24 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	strRes := ""
-	strRes += fmt.Sprintf("Bucket name: %v\n", xmlResult.Name)
-	strRes += fmt.Sprintf("Objects: %v\n", len(objects))
-	strRes += fmt.Sprintf("Directories: %v\n", len(directories))
-	strRes += fmt.Sprintf("Extensions: %v\n", len(extensions))
-	for key, value := range extensions {
-		strRes += fmt.Sprintf("%v: %v\n", key, value)
+	bd := BucketDetails{
+		BucketName: xmlResult.Name,
+		ObjectsCount: len(objects),
+		DirectoriesCount: len(directories),
+		Extensions: extensions,
 	}
-
-	io.WriteString(res, "RESPONSE")
-	io.WriteString(res, "\nURL: " + url)
-	io.WriteString(res, "\n" + strRes)
+	out, err := json.MarshalIndent(bd,"", "\t")
+	if err != nil {
+		panic(err)
+	}
+	res.Header().Set("Content-Type", "application/json")
+	res.Write(out)
 }
 func main() {
 
 	var port = flag.Int("port", 9000, "Port number.")
 	flag.Parse()
-	fmt.Printf("Service on Port: %v\n", *port) // port is a pointer
+	fmt.Printf("===== Service on port: %v =====\n", *port) // port is a pointer
 
 	socket := fmt.Sprintf("localhost:%v", *port)
 

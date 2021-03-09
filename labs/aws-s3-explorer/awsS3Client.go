@@ -17,7 +17,8 @@ func main() {
 	/*
 	fmt.Printf("Proxy: %v\n", *proxy)
 	fmt.Printf("Bucket Name: %v\n", *bucketName)
-	fmt.Printf("Directory: %v\n", *directory)*/
+	fmt.Printf("Directory: %v\n", *directory)
+	*/
 
 	request := fmt.Sprintf("http://%v/example?bucket=%v&dir=%v", *proxy, *bucketName, *directory)
 	resp, err := http.Get(request)
