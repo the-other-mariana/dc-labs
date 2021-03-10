@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"io/ioutil"
+	"io"
 	"log"
 	"strings"
 	"encoding/xml"
@@ -48,20 +49,26 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 
 	resp, gerr := http.Get(url)
 	if gerr != nil {
-		panic("ERROR - Get S3 connection error: " + gerr.Error())
+		println("ERROR - Get S3 connection error.")
+		io.WriteString(res, "ERROR - Get S3 connection error.")
+		return
 	}
 	defer resp.Body.Close()
 
 	data, rerr := ioutil.ReadAll(resp.Body)
 	if rerr != nil {
-		panic("ERROR - Http response reading error: " + rerr.Error())
+		println("ERROR - Http response reading error.")
+		io.WriteString(res, "ERROR - Http response reading error.")
+		return
 	}
 	defer resp.Body.Close()
 
 	var xmlResult XMLResult
 	xerr := xml.Unmarshal(data, &xmlResult)
 	if xerr != nil {
-		panic("ERROR - No such bucket error: " + xerr.Error())
+		println("ERROR - Permission denied bucket.")
+		io.WriteString(res, "ERROR - Permission denied bucket.\n")
+		return
 	}
 
 	for _,c := range xmlResult.Contents {

@@ -14,6 +14,7 @@ func main() {
 	var bucketName = flag.String("bucket", "", "S3 bucket name.")
 	var directory = flag.String("directory", "", "Directory name.")
 	flag.Parse()
+	
 	if *bucketName == "" {
 		fmt.Println("ERROR - Missing parameters.")
 		return
