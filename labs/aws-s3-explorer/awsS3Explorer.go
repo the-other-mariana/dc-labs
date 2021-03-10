@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	//"time"
-	//"io"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -30,6 +28,14 @@ type BucketDetails struct {
 	Extensions map[string]int
 }
 
+type DirDetails struct {
+	BucketName string
+	DirectoryName string
+	ObjectsCount int
+	DirectoriesCount int
+	Extensions map[string]int
+}
+
 func responseHandler(res http.ResponseWriter, req *http.Request) {
 
 	extensions := make(map[string]int)
@@ -37,6 +43,7 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 	objects := make(map[string]bool)
 
 	bucketName := req.FormValue("bucket")
+	reqDir := req.FormValue("dir")
 	url := fmt.Sprintf("https://%v.s3.amazonaws.com", bucketName)
 
 	resp, err := http.Get(url)
@@ -55,8 +62,21 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 	xml.Unmarshal(data, &xmlResult)
 
 	for _,c := range xmlResult.Contents {
-
 		objKey := c.Key
+		dir := fmt.Sprintf("%v/", reqDir)
+
+		if reqDir != "" && !strings.HasPrefix(objKey, dir){
+			continue
+		}
+
+		if reqDir != "" && strings.HasPrefix(objKey, dir){
+			objKey = strings.Replace(objKey, dir, "", 1)
+			if objKey == ""{
+				// remaining directory is the request directory itself
+				continue
+			}
+			//fmt.Printf("%v -> %v\n", dir, objKey)
+		}
 
 		if strings.HasSuffix(objKey, "/"){
 			if !directories[objKey] {
@@ -65,16 +85,13 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 		}
 
 		if strings.Contains(objKey, ".") {
-
 			_, exists := objects[objKey]
-
 			if !exists {
 				objects[objKey] = true
 			}
 
 			ext := strings.Split(objKey, ".")
 			_, exists = extensions[ext[len(ext) - 1]];
-
 			if !exists {
 				extensions[ext[len(ext) - 1]] = 1
 			}
@@ -85,18 +102,37 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	bd := BucketDetails{
-		BucketName: xmlResult.Name,
-		ObjectsCount: len(objects),
-		DirectoriesCount: len(directories),
-		Extensions: extensions,
+	if reqDir == "" {
+		bd := BucketDetails{
+			BucketName: xmlResult.Name,
+			ObjectsCount: len(objects),
+			DirectoriesCount: len(directories),
+			Extensions: extensions,
+		}
+	
+		out, err := json.MarshalIndent(bd,"", "\t")
+		if err != nil {
+			panic(err)
+		}
+		res.Header().Set("Content-Type", "application/json")
+		res.Write(out)
 	}
-	out, err := json.MarshalIndent(bd,"", "\t")
-	if err != nil {
-		panic(err)
+	if reqDir != "" {
+		dd := DirDetails{
+			BucketName: xmlResult.Name,
+			DirectoryName: reqDir,
+			ObjectsCount: len(objects),
+			DirectoriesCount: len(directories),
+			Extensions: extensions,
+		}
+	
+		out, err := json.MarshalIndent(dd, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+		res.Header().Set("Content-Type", "application/json")
+		res.Write(out)
 	}
-	res.Header().Set("Content-Type", "application/json")
-	res.Write(out)
 }
 func main() {
 
