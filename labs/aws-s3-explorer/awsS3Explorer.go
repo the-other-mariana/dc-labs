@@ -46,20 +46,23 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 	reqDir := req.FormValue("dir")
 	url := fmt.Sprintf("https://%v.s3.amazonaws.com", bucketName)
 
-	resp, err := http.Get(url)
-	if err != nil {
-		panic("Error at S3 connection: " + err.Error())
+	resp, gerr := http.Get(url)
+	if gerr != nil {
+		panic("ERROR - Get S3 connection error: " + gerr.Error())
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic("Error at data reading: " + err.Error())
+	data, rerr := ioutil.ReadAll(resp.Body)
+	if rerr != nil {
+		panic("ERROR - Http response reading error: " + rerr.Error())
 	}
 	defer resp.Body.Close()
 
 	var xmlResult XMLResult
-	xml.Unmarshal(data, &xmlResult)
+	xerr := xml.Unmarshal(data, &xmlResult)
+	if xerr != nil {
+		panic("ERROR - No such bucket error: " + xerr.Error())
+	}
 
 	for _,c := range xmlResult.Contents {
 		objKey := c.Key

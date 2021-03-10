@@ -10,10 +10,14 @@ import (
 
 func main() {
 
-	var proxy = flag.String("proxy", "localhost:8080", "Proxy url.")
-	var bucketName = flag.String("bucket", "none", "S3 bucket name.")
+	var proxy = flag.String("proxy", "localhost:8000", "Proxy url.")
+	var bucketName = flag.String("bucket", "", "S3 bucket name.")
 	var directory = flag.String("directory", "", "Directory name.")
 	flag.Parse()
+	if *bucketName == "" {
+		fmt.Println("ERROR - Missing parameters.")
+		return
+	}
 
 	request := fmt.Sprintf("http://%v/example?bucket=%v&dir=%v", *proxy, *bucketName, *directory)
 	resp, err := http.Get(request)
