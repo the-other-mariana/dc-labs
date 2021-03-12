@@ -1,3 +1,4 @@
+// server that serves the bucket and directory details in JSON format
 package main
 
 import (
@@ -12,16 +13,19 @@ import (
 	"encoding/json"
 )
 
+// key objects from xml
 type Content struct {
 	Key string `xml:"Key"`
 }
 
+// xml data struct receiver
 type XMLResult struct {
 	XMLName  xml.Name  `xml:"ListBucketResult"`
 	Name  string  `xml:"Name"`
 	Contents []Content `xml:"Contents"`
 }
 
+// result struct 1
 type BucketDetails struct {
 	BucketName string
 	ObjectsCount int
@@ -29,6 +33,7 @@ type BucketDetails struct {
 	Extensions map[string]int
 }
 
+// result struct 2
 type DirDetails struct {
 	BucketName string
 	DirectoryName string
@@ -47,6 +52,7 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 	reqDir := req.FormValue("dir")
 	url := fmt.Sprintf("https://%v.s3.amazonaws.com", bucketName)
 
+	// get the url response from S3
 	resp, gerr := http.Get(url)
 	if gerr != nil {
 		println("ERROR - Get S3 connection error.")
@@ -61,8 +67,8 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 		io.WriteString(res, "ERROR - Http response reading error.")
 		return
 	}
-	defer resp.Body.Close()
 
+	// decode xml into struct
 	var xmlResult XMLResult
 	xerr := xml.Unmarshal(data, &xmlResult)
 	if xerr != nil {
@@ -71,10 +77,12 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// read and process struct content
 	for _,c := range xmlResult.Contents {
 		objKey := c.Key
 		dir := fmt.Sprintf("%v/", reqDir)
 
+		// conditions to filter directory cases
 		if reqDir != "" && !strings.HasPrefix(objKey, dir){
 			continue
 		}
@@ -85,9 +93,9 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 				// remaining directory is the request directory itself
 				continue
 			}
-			//fmt.Printf("%v -> %v\n", dir, objKey)
 		}
 
+		// process the key string
 		if strings.HasSuffix(objKey, "/"){
 			if !directories[objKey] {
 				directories[objKey] = true
@@ -112,6 +120,7 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// create result struct with final dictionaries and transform it to JSON
 	if reqDir == "" {
 		bd := BucketDetails{
 			BucketName: xmlResult.Name,
@@ -152,6 +161,7 @@ func main() {
 
 	socket := fmt.Sprintf("localhost:%v", *port)
 
+	// get the url from cliente request
 	http.HandleFunc("/example", func(res http.ResponseWriter, req *http.Request) {
         responseHandler(res, req)
     })

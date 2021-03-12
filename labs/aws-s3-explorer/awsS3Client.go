@@ -15,11 +15,13 @@ func main() {
 	var directory = flag.String("directory", "", "Directory name.")
 	flag.Parse()
 	
+	// error handling
 	if *bucketName == "" {
 		fmt.Println("ERROR - Missing parameters.")
 		return
 	}
 
+	// request to server the bucket and directory through a url
 	request := fmt.Sprintf("http://%v/example?bucket=%v&dir=%v", *proxy, *bucketName, *directory)
 	resp, err := http.Get(request)
 	if err != nil {
@@ -27,6 +29,7 @@ func main() {
 	}
 	defer resp.Body.Close()
 
+	// prints the response from server
 	scanner := bufio.NewScanner(resp.Body)
 	for i := 0; scanner.Scan(); i++ {
 		fmt.Println(scanner.Text())
