@@ -44,6 +44,7 @@ type DirDetails struct {
 
 func responseHandler(res http.ResponseWriter, req *http.Request) {
 
+	limit := 3 // the explorer cannot check further than 3 levels on the directory tree
 	extensions := make(map[string]int)
 	directories := make(map[string]bool)
 	objects := make(map[string]bool)
@@ -93,6 +94,11 @@ func responseHandler(res http.ResponseWriter, req *http.Request) {
 				// remaining directory is the request directory itself
 				continue
 			}
+		}
+		
+		// if there is more than 3 directories in the tree, discard the key
+		if strings.Count(objKey, "/") > limit {
+			continue
 		}
 
 		// process the key string

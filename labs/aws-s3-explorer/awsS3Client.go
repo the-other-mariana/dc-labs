@@ -15,7 +15,7 @@ func main() {
 	var directory = flag.String("directory", "", "Directory name.")
 	flag.Parse()
 	
-	// error handling
+	// error if bucket parameter is missing, the server cannot process anything
 	if *bucketName == "" {
 		fmt.Println("ERROR - Missing parameters.")
 		return
